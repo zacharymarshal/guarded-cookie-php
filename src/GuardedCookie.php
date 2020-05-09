@@ -11,6 +11,7 @@ class GuardedCookie
     private $hash_key;
     private $encryption_key;
     private $expire_in_seconds = 86400 * 7;
+    private $max_value_size = 4096;
     private $domain;
     private $path = '/';
     private $httponly = true;
@@ -24,6 +25,7 @@ class GuardedCookie
         $this->hash_key = $options['hash_key'] ?? getenv('GUARDED_COOKIE_HASH_KEY');
         $this->encryption_key = $options['encryption_key'] ?? getenv('GUARDED_COOKIE_ENCRYPTION_KEY');
         $this->expire_in_seconds = (int) ($options['expire_in_seconds'] ?? $this->expire_in_seconds);
+        $this->max_value_size = (int) ($options['max_value_size'] ?? $this->max_value_size);
         $this->domain = $options['domain'] ?? getenv('GUARDED_COOKIE_DOMAIN');
         $this->path = $options['path'] ?? $this->path;
         $this->httponly = (bool) ($options['httponly'] ?? $this->httponly);
@@ -82,11 +84,27 @@ class GuardedCookie
         $value .= sprintf('.%s', $hash);
         $value = base64_encode($value);
 
+        if (strlen($value) > $this->max_value_size) {
+            throw new Exception(sprintf(
+                'Cookies value is too large: %d, max is %d',
+                strlen($value),
+                $this->max_value_size,
+            ));
+        }
+
         return $value;
     }
 
     private function decode(string $value)
     {
+        if (strlen($value) > $this->max_value_size) {
+            throw new Exception(sprintf(
+                'Cookies value is too large: %d, max is %d',
+                strlen($value),
+                $this->max_value_size,
+            ));
+        }
+
         // Decode
         $value = base64_decode($value);
 
