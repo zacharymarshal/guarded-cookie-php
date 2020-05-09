@@ -7,19 +7,65 @@ use Throwable;
 
 class GuardedCookie
 {
+    private $name;
     private $hash_key;
     private $encryption_key;
+    private $expire_in_seconds = 86400 * 7;
+    private $domain;
+    private $path = '/';
+    private $httponly = true;
+    private $secure = true;
+    private $samesite = 'Strict';
+    private $last_error;
 
-    private $expire_in_seconds;
-
-    public function __construct(string $hash_key, string $encryption_key, array $options = [])
+    public function __construct(string $name, array $options = [])
     {
-        $this->hash_key = $hash_key;
-        $this->encryption_key = $encryption_key;
-        $this->setOptions($options);
+        $this->name = $name;
+        $this->hash_key = $options['hash_key'] ?? getenv('GUARDED_COOKIE_HASH_KEY');
+        $this->encryption_key = $options['encryption_key'] ?? getenv('GUARDED_COOKIE_ENCRYPTION_KEY');
+        $this->expire_in_seconds = (int) ($options['expire_in_seconds'] ?? $this->expire_in_seconds);
+        $this->domain = $options['domain'] ?? getenv('GUARDED_COOKIE_DOMAIN');
+        $this->path = $options['path'] ?? $this->path;
+        $this->httponly = (bool) ($options['httponly'] ?? $this->httponly);
+        $this->secure = (bool) ($options['secure'] ?? $this->secure);
+        $this->samesite = $options['samesite'] ?? $this->samesite;
     }
 
-    public function encode(string $name, $data): string
+    public function get()
+    {
+        if (!isset($_COOKIE[$this->name])) {
+            return null;
+        }
+
+        try {
+            $this->last_error = null;
+            return $this->decode($_COOKIE[$this->name]);
+        } catch (Throwable $e) {
+            $this->last_error = $e;
+        }
+
+        return null;
+    }
+
+    public function getLastError()
+    {
+        return $this->last_error;
+    }
+
+    public function save($data): void
+    {
+        $encoded_value = $this->encode($data);
+        setcookie('session', $encoded_value, [
+            'expires'  => time() + $this->expire_in_seconds,
+            'path'     => $this->path,
+            'domain'   => $this->domain,
+            'httponly' => $this->httponly,
+            'secure'   => $this->secure,
+            'samesite' => $this->samesite,
+        ]);
+    }
+
+    private function encode($data): string
     {
         // Serialize
         $data = json_encode($data, JSON_UNESCAPED_SLASHES);
@@ -32,7 +78,7 @@ class GuardedCookie
         // Hash
         $data = base64_encode($data);
         $now = time();
-        $data = "{$name}.{$now}.{$data}";
+        $data = "{$this->name}.{$now}.{$data}";
         $hmac = hash_hmac('sha256', $data, $this->hash_key);
         $data .= ".{$hmac}";
         $data = base64_encode($data);
@@ -40,7 +86,7 @@ class GuardedCookie
         return $data;
     }
 
-    public function decode(string $name, string $data)
+    private function decode(string $data)
     {
         // Decode
         $data = base64_decode($data);
@@ -51,7 +97,7 @@ class GuardedCookie
         }
 
         // Verify hash
-        $verify_hmac_data = "{$name}.{$date}.{$data}";
+        $verify_hmac_data = "{$this->name}.{$date}.{$data}";
         $verify_hmac = hash_hmac('sha256', $verify_hmac_data, $this->hash_key);
 
         if (hash_equals($verify_hmac, $hmac) !== true) {
@@ -82,13 +128,5 @@ class GuardedCookie
         $data = json_decode($data, true);
 
         return $data;
-    }
-
-    private function setOptions($options)
-    {
-        $expire_in_seconds = 3600;
-        extract($options, EXTR_IF_EXISTS);
-
-        $this->expire_in_seconds = (int) $expire_in_seconds;
     }
 }

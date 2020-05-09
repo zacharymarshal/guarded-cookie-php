@@ -4,44 +4,28 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use GuardedCookie\GuardedCookie;
 
-$guard = new GuardedCookie(getenv('HASH_KEY'), getenv('ENCRYPTION_KEY'), [
-    'expire_in_seconds' => 86400 * 30,
-]);
+$session_cookie = new GuardedCookie('session');
 
-$session = [];
-if (!empty($_COOKIE['session'])) {
-    try {
-        $session = $guard->decode('session', $_COOKIE['session']);
-    } catch (Throwable $e) {
-        $session = [];
-    }
-}
+$session = $session_cookie->get() ?: [];
 
-$session_commit = function () use ($guard, &$session) {
-    setcookie('session', $guard->encode('session', $session), [
-        'expires'  => 0,
-        'path'     => '/',
-        'domain'   => getenv('DOMAIN'),
-        'httponly' => true,
-        'secure'   => true,
-        'samesite' => 'Strict'
-    ]);
-};
+// This is useful for seeing if someone might be messing
+// with your cookies
+$last_cookie_error = $session_cookie->getLastError();
 
 if (!empty($_GET)) {
     foreach ($_GET as $key => $value) {
         $session[$key] = $value;
     }
-    $session_commit();
 
+    $session_cookie->save($session);
     http_response_code(302);
     header('Location: /');
     return;
 }
 
+$session_cookie->save($session);
 http_response_code(200);
-$session_commit();
-
 echo "Can you find the 🍪?";
 
 var_dump($session);
+echo $last_cookie_error ? sprintf('Error: %s', $last_cookie_error->getMessage()) : '';

@@ -26,9 +26,9 @@ services:
       - ./composer:/.composer
       - ./docker/php/php.ini:/usr/local/etc/php/php.ini
     environment:
-      - DOMAIN
-      - HASH_KEY
-      - ENCRYPTION_KEY
+      - GUARDED_COOKIE_DOMAIN
+      - GUARDED_COOKIE_HASH_KEY
+      - GUARDED_COOKIE_ENCRYPTION_KEY
     ports:
       - 9000
 
