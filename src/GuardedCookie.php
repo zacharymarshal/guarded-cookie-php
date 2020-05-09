@@ -74,16 +74,15 @@ class GuardedCookie
         $iv = random_bytes(openssl_cipher_iv_length('AES-256-CBC'));
         $data = openssl_encrypt($data, 'AES-256-CBC', $this->encryption_key, 0, $iv);
         $data = $iv . $data;
-
-        // Hash
-        $data = base64_encode($data);
-        $now = time();
-        $data = "{$this->name}.{$now}.{$data}";
-        $hmac = hash_hmac('sha256', $data, $this->hash_key);
-        $data .= ".{$hmac}";
         $data = base64_encode($data);
 
-        return $data;
+        // Hash name.timestamp.encrypted_data.hash
+        $value = sprintf('%s.%d.%s', $this->name, time(), $data);
+        $hash = hash_hmac('sha256', $value, $this->hash_key);
+        $value .= sprintf('.%s', $hash);
+        $value = base64_encode($value);
+
+        return $value;
     }
 
     private function decode(string $value)
