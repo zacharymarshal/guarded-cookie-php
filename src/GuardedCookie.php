@@ -86,29 +86,33 @@ class GuardedCookie
         return $data;
     }
 
-    private function decode(string $data)
+    private function decode(string $value)
     {
         // Decode
-        $data = base64_decode($data);
-        try {
-            [, $date, $data, $hmac] = explode('.', $data);
-        } catch (Throwable $e) {
-            throw new Exception(sprintf('Invalid hmac %s', $e));
+        $value = base64_decode($value);
+
+        $parts = explode('.', $value);
+        if (count($parts) !== 4) {
+            throw new Exception('Invalid hash, missing the correct number of parts.');
+        }
+
+        [$name, $time, $data, $hash] = $parts;
+        $time = (int) $time;
+
+        if ($name !== $this->name) {
+            throw new Exception('Invalid hash, cookie name does not match');
         }
 
         // Verify hash
-        $verify_hmac_data = "{$this->name}.{$date}.{$data}";
-        $verify_hmac = hash_hmac('sha256', $verify_hmac_data, $this->hash_key);
+        $verify_hash_data = sprintf('%s.%d.%s', $this->name, $time, $data);
+        $verify_hash = hash_hmac('sha256', $verify_hash_data, $this->hash_key);
 
-        if (hash_equals($verify_hmac, $hmac) !== true) {
-            throw new Exception('Invalid hash!');
+        if (hash_equals($verify_hash, $hash) !== true) {
+            throw new Exception('Invalid hash, does not match.');
         }
 
         // Verify expiration
-        $date = (int) $date;
-        $now = time();
-
-        if ($date < $now - $this->expire_in_seconds) {
+        if ($time < time() - $this->expire_in_seconds) {
             throw new Exception('Cookie has expired.');
         }
 
@@ -121,7 +125,7 @@ class GuardedCookie
         $data = openssl_decrypt($data, 'AES-256-CBC', $this->encryption_key, 0, $iv);
 
         if ($data === false) {
-            throw new Exception('Could not decrypt the data.');
+            throw new Exception('Could not decrypt the data in our hash.');
         }
 
         // De-serialize
