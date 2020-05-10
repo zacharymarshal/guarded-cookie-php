@@ -20,4 +20,7 @@ RUN curl -sS https://getcomposer.org/installer >composer-setup.php \
         --install-dir=/usr/local/bin --filename=composer \
     && rm composer-setup.php
 
+RUN curl -sS https://cs.symfony.com/download/php-cs-fixer-v2.phar > /usr/local/bin/php-cs-fixer \
+    && chmod 0755 /usr/local/bin/php-cs-fixer
+
 WORKDIR /app

@@ -1,0 +1,41 @@
+<?php
+
+$finder = PhpCsFixer\Finder::create()
+    ->in(__DIR__);
+
+return PhpCsFixer\Config::create()
+    ->setRules([
+        '@PSR2' => true,
+        'binary_operator_spaces' => true,
+        'align_multiline_comment' => ['comment_type' => 'phpdocs_only'],
+        'array_indentation' => true,
+        'array_syntax' => ['syntax' => 'short'],
+        'backtick_to_shell_exec' => true,
+        'binary_operator_spaces' => [
+            'operators' => [
+                '=>' => 'align_single_space',
+            ],
+        ],
+        'blank_line_after_opening_tag' => true,
+        'blank_line_before_statement' => false,
+        'braces' => [
+            'allow_single_line_closure' => false,
+            'position_after_functions_and_oop_constructs' => 'next',
+            'position_after_control_structures' => 'same',
+            'position_after_anonymous_constructs' => 'same',
+        ],
+        'cast_spaces' => ['space' => 'single'],
+        'heredoc_indentation' => true,
+        'heredoc_to_nowdoc' => true,
+        'no_leading_import_slash' => true,
+        'no_trailing_whitespace' => true,
+        'ordered_class_elements' => ['order' => ['use_trait']],
+        'ordered_imports' => ['imports_order' => ['class', 'function', 'const']],
+        'return_type_declaration' => ['space_before' => 'none'],
+        'short_scalar_cast' => true,
+        'single_import_per_statement' => true,
+        'ternary_operator_spaces' => true,
+        'unary_operator_spaces' => true,
+        'visibility_required' => ['elements' => ['const', 'method', 'property']],
+    ])
+    ->setFinder($finder);
