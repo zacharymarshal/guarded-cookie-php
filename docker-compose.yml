@@ -23,7 +23,7 @@ services:
     restart: unless-stopped
     volumes:
       - .:/app
-      - ./composer:/.composer
+      - ~/.composer:/root/.composer
       - ./docker/php/php.ini:/usr/local/etc/php/php.ini
     environment:
       - GUARDED_COOKIE_DOMAIN
