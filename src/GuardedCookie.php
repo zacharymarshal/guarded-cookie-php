@@ -57,7 +57,7 @@ class GuardedCookie
     public function save($data): void
     {
         $encoded_value = $this->encode($data);
-        setcookie('session', $encoded_value, [
+        setcookie($this->name, $encoded_value, [
             'expires'  => time() + $this->expire_in_seconds,
             'path'     => $this->path,
             'domain'   => $this->domain,
