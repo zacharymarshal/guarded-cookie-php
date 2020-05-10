@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# exit on error
+set -e
+
+# 1. find all php files that are in the codebase (excluding ./vendor)
+# 2. run `php -l` on each of the files, allowing xargs to run up to 10 `php -l`
+#    commands simultaneously
+find . -path ./vendor -prune -o -type f -iname \*.php -print0 \
+    | xargs -0 -I {} -P 10 php -l {}

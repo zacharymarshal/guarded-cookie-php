@@ -1,4 +1,4 @@
-.PHONY: build phpfmt
+.PHONY: build phpfmt tests
 
 build:
 	docker-compose build
@@ -7,3 +7,8 @@ build:
 
 phpfmt:
 	docker-compose exec php-fpm /usr/local/bin/php-cs-fixer fix
+
+tests:
+	docker-compose exec php-fpm /usr/local/bin/php-cs-fixer fix --dry-run \
+		--stop-on-violation --using-cache=no
+	docker-compose exec php-fpm bin/lint
