@@ -1,0 +1,25 @@
+<phpunit bootstrap="tests/bootstrap.php" testdox="true" colors="true">
+  <testsuites>
+    <testsuite name="guarded-cookie-php">
+      <directory>tests</directory>
+    </testsuite>
+  </testsuites>
+
+  <filter>
+    <whitelist>
+      <directory suffix=".php">src</directory>
+    </whitelist>
+  </filter>
+
+  <logging>
+    <log type="coverage-html" target="build/coverage-report" />
+  </logging>
+
+  <php>
+    <env name="GUARDED_COOKIE_DOMAIN" value="" force="true" />
+    <env name="GUARDED_COOKIE_HASH_KEY" force="true"
+      value="12345678912345678912345678912345"/>
+    <env name="GUARDED_COOKIE_ENCRYPTION_KEY" force="true"
+      value="54321987654321987654321987654321"/>
+  </php>
+</phpunit>

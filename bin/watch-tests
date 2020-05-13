@@ -1,0 +1,6 @@
+#!/bin/sh
+
+while true; do
+  FILE=$(inotifywait --exclude="4913" --format "%w%f" --event close_write --recursive --quiet src/ tests/) \
+  && /usr/local/bin/phpunit
+done
