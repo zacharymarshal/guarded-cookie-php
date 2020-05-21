@@ -134,13 +134,14 @@ class GuardedCookieTest extends TestCase
     public function testGetDecodesString()
     {
         $_COOKIE = [
-            'session' => 'c2Vzc2lvbi4xNTg5Mjk4ODAyLlRpTVJpUHRnanFBSmk2enVxaWticUhBeU1qVm1VbmRLTlRKa1JIQnhPVzVLYzNCQ1lUZFlXRTR4VlVzNU5YQlFlbXRVVlV4b1VGWlhPVms5LjBkZjFlNTYwZTU1N2FkYTUyOGUxYThmNjc3NTcxOGU4ZGQ2MzgzM2FhZjYyMWFiYjRjZjJkNmJmZTU3ZmQwNTg=',
+            'session' => 'c2Vzc2lvbi4xNTkwMDMzNjc0Lm5VSHNxSk4rZ2RJTjBUTzBpLyt1UkZRdllsVkVOM1pXZEVRMmFUVkZWRWhIY21Ob04xTXpRMnN5ZG5aWFNEVlJSMDlUZEhoeFFTOVNOV3M5LjFkZjQ4NTliNWM1NDg1NWE2ZDYzMTQwZTk2OTlhYjdkNTlmNTkyZWVhZDU5N2I3M2Q3NmExNDQyNDU4NDk5Nzk=',
         ];
 
         $cookie = new GuardedCookie('session', [
             'expires_in_seconds' => 31556952 * 5,
         ]);
         $data = $cookie->get();
+        $this->assertNull($cookie->getLastError());
         $this->assertEquals(['hello' => 'tests'], $data);
     }
 
